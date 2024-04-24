@@ -1,7 +1,6 @@
 package models
 
 import (
-	"git.gibb.ch/faf141769/infw-22a-m152-teamsigma/config"
 	"github.com/jinzhu/gorm"
 )
 
@@ -12,31 +11,25 @@ type Book struct {
 	Publication string `json:"publication"`
 }
 
-func init() {
-	config.Connect()
-	db = config.GetDB()
-	db.AutoMigrate(&Book{})
-}
-
-func (b *Book) CreateBook() *Book {
+func (b *Book) CreateBook(db *gorm.DB) *Book {
 	db.NewRecord(b)
 	db.Create(&b)
 	return b
 }
 
-func GetAllBooks() []Book {
+func GetAllBooks(db *gorm.DB) []Book {
 	var books []Book
 	db.Find(&books)
 	return books
 }
 
-func GetBookById(Id int64) (*Book, *gorm.DB) {
+func GetBookById(Id int64, db *gorm.DB) (*Book, *gorm.DB) {
 	var getBook Book
-	db := db.Where("ID=?", Id).Find(&getBook)
-	return &getBook, db
+	dbred := db.Where("ID=?", Id).Find(&getBook)
+	return &getBook, dbred
 }
 
-func DeleteBook(Id int64) Book {
+func DeleteBook(Id int64, db *gorm.DB) Book {
 	var book Book
 	db.Unscoped().Where("ID=?", Id).Delete(book)
 	return book

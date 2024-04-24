@@ -15,6 +15,10 @@ var (
 
 const SessionName = "user-session" // TODO should be user specific
 
+func Init(database *gorm.DB) {
+	db = database
+}
+
 func RegisterNewUser(username, password string) error {
 	// Hash the password using bcrypt
 	passwordHash, err := bcrypt.GenerateFromPassword([]byte(password), bcrypt.DefaultCost)
@@ -28,9 +32,7 @@ func RegisterNewUser(username, password string) error {
 		Password: string(passwordHash),
 	}
 
-	if db.NewRecord(user) {
-		db.Create(user)
-	}
+	db.Create(&user)
 
 	return nil
 }
