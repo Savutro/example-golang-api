@@ -56,9 +56,7 @@ func LogoutUserHandler(w http.ResponseWriter, r *http.Request) {
 
 	err := session.Save(r, w)
 	if err != nil {
-		// respond with an error
-		return
+		http.Error(w, "Could not invalidate session.", http.StatusInternalServerError)
 	}
-
-	// Respond with a success message
+	w.Write([]byte("Logout successful"))
 }

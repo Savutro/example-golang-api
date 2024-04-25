@@ -18,9 +18,16 @@ const (
 func main() {
 	log.Print("Starting App...")
 
-	db := config.Connect()
+	cfg, err := config.LoadConfig("./config/config.yaml")
+	if err != nil {
+		log.Fatalf("Can't load config: %v", err)
+	}
 
-	auth.Init(db)
+	log.Printf("Loaded config: %+v\n", cfg)
+
+	db := config.Connect(cfg)
+
+	auth.Init(db, cfg)
 
 	// Define API routes
 	r := mux.NewRouter()
@@ -30,7 +37,7 @@ func main() {
 	r.HandleFunc("/login", controllers.LoginUserHandler).Methods("POST")
 	r.HandleFunc("/logout", middleware.AuthRequired(controllers.LogoutUserHandler)).Methods("POST")
 
-	r.HandleFunc("/admin", middleware.AuthAndRoleRequired(controllers.AdminHandler)).Methods("GET")
+	r.HandleFunc("/admin", controllers.AdminHandler).Methods("GET") // TODO secure endpoint
 
 	// User creates a book associated to them
 	r.HandleFunc("/book", middleware.AuthRequired(controllers.CreateBookHandler)).Methods("POST")

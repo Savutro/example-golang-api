@@ -13,17 +13,9 @@ var (
 	DB *gorm.DB
 )
 
-const (
-	dbUser     = "root"
-	dbPassword = "w+dopkAx05452" // TODO Secure password
-	dbHost     = "127.0.0.1"
-	dbPort     = "3306"
-	dbName     = "bookstore"
-)
-
-func Connect() *gorm.DB {
+func Connect(cfg Config) *gorm.DB {
 	dsn := fmt.Sprintf("%s:%s@tcp(%s:%s)/%s?charset=utf8&parseTime=True&loc=Local",
-		dbUser, dbPassword, dbHost, dbPort, dbName)
+		cfg.DbUser, cfg.DbPassword, cfg.DbHost, cfg.DbPort, cfg.DbName)
 
 	db, err := gorm.Open("mysql", dsn)
 	if err != nil {

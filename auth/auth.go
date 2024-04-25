@@ -3,6 +3,7 @@ package auth
 import (
 	"fmt"
 
+	"git.gibb.ch/faf141769/infw-22a-m152-teamsigma/config"
 	"git.gibb.ch/faf141769/infw-22a-m152-teamsigma/models"
 	"github.com/gorilla/sessions"
 	"github.com/jinzhu/gorm"
@@ -10,25 +11,23 @@ import (
 )
 
 var (
-	key   = []byte("super-secret-key") // TODO solve with env
-	Store = sessions.NewCookieStore([]byte(key))
-	db    *gorm.DB
+	cfg         config.Config
+	Store       = sessions.NewCookieStore([]byte(cfg.CookiePassword))
+	SessionName = cfg.SessionName
+	db          *gorm.DB
 )
 
-const SessionName = "user-session" // TODO should be user specific
-
-func Init(database *gorm.DB) {
+func Init(database *gorm.DB, config config.Config) {
 	db = database
+	cfg = config
 }
 
 func RegisterNewUser(username, password string) error {
-	// Hash the password using bcrypt
 	passwordHash, err := bcrypt.GenerateFromPassword([]byte(password), bcrypt.DefaultCost)
 	if err != nil {
 		return err
 	}
 
-	// Create a new user instance
 	user := &models.User{
 		Username: username,
 		Password: string(passwordHash),
