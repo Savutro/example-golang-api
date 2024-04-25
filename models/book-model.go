@@ -11,12 +11,6 @@ type Book struct {
 	Publication string `json:"publication"`
 }
 
-func (b *Book) CreateBook(db *gorm.DB) *Book {
-	db.NewRecord(b)
-	db.Create(&b)
-	return b
-}
-
 func GetAllBooks(db *gorm.DB) []Book {
 	var books []Book
 	db.Find(&books)
@@ -27,6 +21,12 @@ func GetBookById(Id int64, db *gorm.DB) (*Book, *gorm.DB) {
 	var getBook Book
 	dbred := db.Where("ID=?", Id).Find(&getBook)
 	return &getBook, dbred
+}
+
+func (b *Book) CreateBook(db *gorm.DB) *Book {
+	db.NewRecord(b)
+	db.Create(&b)
+	return b
 }
 
 func DeleteBook(Id int64, db *gorm.DB) Book {

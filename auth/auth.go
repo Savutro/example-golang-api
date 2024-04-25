@@ -1,6 +1,8 @@
 package auth
 
 import (
+	"fmt"
+
 	"git.gibb.ch/faf141769/infw-22a-m152-teamsigma/models"
 	"github.com/gorilla/sessions"
 	"github.com/jinzhu/gorm"
@@ -40,11 +42,11 @@ func RegisterNewUser(username, password string) error {
 func LoginUser(username, password string) error {
 	var user models.User
 	if err := db.Where("username = ?", username).First(&user).Error; err != nil {
-		return err
+		return fmt.Errorf("username couldn't be found: %v", err)
 	}
 
 	if err := bcrypt.CompareHashAndPassword([]byte(user.Password), []byte(password)); err != nil {
-		return err
+		return fmt.Errorf("password doesn't match the hash: %v", err)
 	}
 
 	return nil

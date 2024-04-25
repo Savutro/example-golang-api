@@ -38,7 +38,7 @@ func LoginUserHandler(w http.ResponseWriter, r *http.Request) {
 
 	err = auth.LoginUser(username, password)
 	if err != nil {
-		// Respond with error invalid credentials
+		http.Error(w, "Credentials are invalid", http.StatusBadRequest)
 		return
 	}
 

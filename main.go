@@ -30,6 +30,8 @@ func main() {
 	r.HandleFunc("/login", controllers.LoginUserHandler).Methods("POST")
 	r.HandleFunc("/logout", middleware.AuthRequired(controllers.LogoutUserHandler)).Methods("POST")
 
+	r.HandleFunc("/admin", middleware.AuthAndRoleRequired(controllers.AdminHandler)).Methods("GET")
+
 	// User creates a book associated to them
 	r.HandleFunc("/book", middleware.AuthRequired(controllers.CreateBookHandler)).Methods("POST")
 

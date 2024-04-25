@@ -19,3 +19,7 @@ func AuthRequired(handler http.HandlerFunc) http.HandlerFunc {
 		handler.ServeHTTP(w, r)
 	}
 }
+
+func AuthAndRoleRequired(handler http.HandlerFunc) http.HandlerFunc {
+	return func(w http.ResponseWriter, r *http.Request) {} // TODO Implement Role Checker
+}
