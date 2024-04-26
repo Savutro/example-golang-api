@@ -1,6 +1,7 @@
 package main
 
 import (
+	"crypto/tls"
 	"log"
 	"net/http"
 
@@ -61,30 +62,30 @@ func main() {
 	log.Print("Registered Routes.")
 
 	// Setup TLS
-	// cert, err := tls.LoadX509KeyPair("servert.crt", "server.key")
-	// if err != nil {
-	// 	log.Fatalf("Failed to load key pair: %v", err)
-	// }
-	// log.Print("Loaded key pair.")
-
-	// tlsCfg := &tls.Config{
-	// 	Certificates: []tls.Certificate{cert},
-	// }
-
-	// server := &http.Server{
-	// 	Addr:      port,
-	// 	Handler:   r,
-	// 	TLSConfig: tlsCfg,
-	// }
-
-	// log.Printf("Listening on %s...", port)
-	// err = server.ListenAndServeTLS("", "")
-	// if err != nil {
-	// 	log.Fatalf("Failed to start server: %v", err)
-	// }
-
-	log.Print("Starting server...")
-	if err := http.ListenAndServe(port, r); err != nil {
-		log.Fatal("Failed to serve.")
+	cert, err := tls.LoadX509KeyPair("server.crt", "server.key")
+	if err != nil {
+		log.Fatalf("Failed to load key pair: %v", err)
 	}
+	log.Print("Loaded key pair.")
+
+	tlsCfg := &tls.Config{
+		Certificates: []tls.Certificate{cert},
+	}
+
+	server := &http.Server{
+		Addr:      port,
+		Handler:   r,
+		TLSConfig: tlsCfg,
+	}
+
+	log.Printf("Listening on %s...", port)
+	err = server.ListenAndServeTLS("", "")
+	if err != nil {
+		log.Fatalf("Failed to start server: %v", err)
+	}
+
+	// log.Print("Starting server...")
+	// if err := http.ListenAndServe(port, r); err != nil {
+	// 	log.Fatal("Failed to serve.")
+	// }
 }
