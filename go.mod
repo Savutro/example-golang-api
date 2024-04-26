@@ -3,6 +3,7 @@ module git.gibb.ch/faf141769/infw-22a-m152-teamsigma
 go 1.21.3
 
 require (
+	github.com/google/uuid v1.6.0
 	github.com/gorilla/mux v1.8.1
 	github.com/gorilla/sessions v1.2.2
 	github.com/jinzhu/gorm v1.9.16

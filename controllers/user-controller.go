@@ -22,7 +22,6 @@ func RegisterUserHandler(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	// Respond with a success message
 	w.Write([]byte("Registration successful"))
 }
 
@@ -46,7 +45,7 @@ func LoginUserHandler(w http.ResponseWriter, r *http.Request) {
 	session.Values["username"] = username
 	session.Save(r, w)
 
-	// Respond with a success message
+	w.Write([]byte("Login successful"))
 }
 
 func LogoutUserHandler(w http.ResponseWriter, r *http.Request) {

@@ -5,6 +5,7 @@ import (
 
 	"git.gibb.ch/faf141769/infw-22a-m152-teamsigma/config"
 	"git.gibb.ch/faf141769/infw-22a-m152-teamsigma/models"
+	"github.com/google/uuid"
 	"github.com/gorilla/sessions"
 	"github.com/jinzhu/gorm"
 	"golang.org/x/crypto/bcrypt"
@@ -12,14 +13,16 @@ import (
 
 var (
 	cfg         config.Config
-	Store       = sessions.NewCookieStore([]byte(cfg.CookiePassword))
-	SessionName = cfg.SessionName
+	Store       *sessions.CookieStore
+	SessionName string
 	db          *gorm.DB
 )
 
 func Init(database *gorm.DB, config config.Config) {
 	db = database
 	cfg = config
+	SessionName = cfg.SessionName
+	Store = sessions.NewCookieStore([]byte(cfg.CookiePassword))
 }
 
 func RegisterNewUser(username, password string) error {
@@ -29,8 +32,10 @@ func RegisterNewUser(username, password string) error {
 	}
 
 	user := &models.User{
+		UUID:     uuid.New().String(),
 		Username: username,
 		Password: string(passwordHash),
+		Role:     "standard",
 	}
 
 	db.Create(&user)

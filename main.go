@@ -8,6 +8,7 @@ import (
 	"git.gibb.ch/faf141769/infw-22a-m152-teamsigma/config"
 	"git.gibb.ch/faf141769/infw-22a-m152-teamsigma/controllers"
 	"git.gibb.ch/faf141769/infw-22a-m152-teamsigma/middleware"
+	"git.gibb.ch/faf141769/infw-22a-m152-teamsigma/models"
 	"github.com/gorilla/mux"
 )
 
@@ -18,14 +19,17 @@ const (
 func main() {
 	log.Print("Starting App...")
 
+	// Get configuration values from a yaml
 	cfg, err := config.LoadConfig("./config/config.yaml")
 	if err != nil {
 		log.Fatalf("Can't load config: %v", err)
 	}
 
-	log.Printf("Loaded config: %+v\n", cfg)
-
 	db := config.Connect(cfg)
+
+	if err := db.AutoMigrate(&models.User{}, &models.Book{}).Error; err != nil {
+		log.Fatal("Could not migrate database: ", err)
+	}
 
 	auth.Init(db, cfg)
 
@@ -37,7 +41,7 @@ func main() {
 	r.HandleFunc("/login", controllers.LoginUserHandler).Methods("POST")
 	r.HandleFunc("/logout", middleware.AuthRequired(controllers.LogoutUserHandler)).Methods("POST")
 
-	r.HandleFunc("/admin", controllers.AdminHandler).Methods("GET") // TODO secure endpoint
+	r.HandleFunc("/admin", middleware.AuthAndRoleRequired(controllers.AdminHandler)).Methods("GET")
 
 	// User creates a book associated to them
 	r.HandleFunc("/book", middleware.AuthRequired(controllers.CreateBookHandler)).Methods("POST")
