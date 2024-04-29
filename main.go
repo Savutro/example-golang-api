@@ -39,24 +39,26 @@ func main() {
 
 	// Authentication endpoints
 	r.HandleFunc("/register", controllers.RegisterUserHandler).Methods("POST")
-	r.HandleFunc("/login", controllers.LoginUserHandler).Methods("POST")
+	r.HandleFunc("/login", controllers.LoginUserHandler).Methods("POST")     // returns invalid session cookie
+	r.HandleFunc("/twofactor", controllers.TwoFactorHandler).Methods("POST") // makes session cookie valid after 2FA
 	r.HandleFunc("/logout", middleware.AuthRequired(controllers.LogoutUserHandler)).Methods("POST")
 
+	// Example endpoint for role based authorization
 	r.HandleFunc("/admin", middleware.AuthAndRoleRequired(controllers.AdminHandler)).Methods("GET")
 
-	// User creates a book associated to them
+	// User creates a book in the database
 	r.HandleFunc("/book", middleware.AuthRequired(controllers.CreateBookHandler)).Methods("POST")
 
-	// User gets all books associated to them
+	// User gets all books from database
 	r.HandleFunc("/book", middleware.AuthRequired(controllers.GetBookHandler)).Methods("GET")
 
-	// User gets info about a specifc book
+	// User gets info about a specifc book from database
 	r.HandleFunc("/book/{bookId}", middleware.AuthRequired(controllers.GetBookByIdHandler)).Methods("GET")
 
-	// User overrides existing book
+	// User overrides existing book with provided info
 	r.HandleFunc("/book/{bookId}", middleware.AuthRequired(controllers.UpdateBookHandler)).Methods("PUT")
 
-	// User deletes a specific book that's associated to them
+	// User deletes a specific book
 	r.HandleFunc("/book/{bookId}", middleware.AuthRequired(controllers.DeleteBookHandler)).Methods("DELETE")
 
 	log.Print("Registered Routes.")
@@ -83,9 +85,4 @@ func main() {
 	if err != nil {
 		log.Fatalf("Failed to start server: %v", err)
 	}
-
-	// log.Print("Starting server...")
-	// if err := http.ListenAndServe(port, r); err != nil {
-	// 	log.Fatal("Failed to serve.")
-	// }
 }

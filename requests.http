@@ -1,22 +1,22 @@
 ### 
-POST http://localhost:8080/register
+POST https://localhost:8080/register
 Content-Type: application/x-www-form-urlencoded
 
 username=Light&password=Yagami
 ### 
-POST http://localhost:8080/login
+POST https://localhost:8080/login
 Content-Type: application/x-www-form-urlencoded
 
 username=Light&password=Yagami
 ###
-POST http://localhost:8080/logout
+POST https://localhost:8080/logout
 ###
-GET http://localhost:8080/profile
+GET https://localhost:8080/profile
 ###
-GET http://localhost:8080/book/
+GET https://localhost:8080/book/
 ###
-POST http://localhost:8080/book/
+POST https://localhost:8080/book/
 ###
-PUT http://localhost:8080/book/
+PUT https://localhost:8080/book/
 ###
-Delete http://localhost:8080/book/3
+Delete https://localhost:8080/book/3

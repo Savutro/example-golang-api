@@ -13,6 +13,7 @@ type Config struct {
 	DbPort         string `mapstructure:"DB_PORT"`
 	DbName         string `mapstructure:"DB_NAME"`
 	CookiePassword string `mapstructure:"COOKIE_PASSWORD"`
+	JwtPassword    string `mapstructure:"JWT_PASSWORD"`
 	SessionName    string `mapstructure:"SESSION_NAME"`
 }
 

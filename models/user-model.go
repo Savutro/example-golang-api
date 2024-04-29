@@ -9,10 +9,11 @@ import (
 
 type User struct {
 	gorm.Model
-	UUID     string `gorm:"type:varchar(36);unique"`
-	Username string `gorm:"type:varchar(100);unique"`
-	Password string `gorm:"not null;size:72"`
-	Role     string `gorm:"type:varchar(20)"`
+	UUID            string `gorm:"type:varchar(36);unique"`
+	Username        string `gorm:"type:varchar(100);unique"`
+	Password        string `gorm:"not null;size:72"`
+	TwoFactorSecret string `gorm:"not null"`
+	Role            string `gorm:"type:varchar(20)"`
 }
 
 func (u *User) BeforeSave() error {
