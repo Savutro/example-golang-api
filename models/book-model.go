@@ -1,6 +1,8 @@
 package models
 
 import (
+	"strconv"
+
 	"github.com/jinzhu/gorm"
 )
 
@@ -19,7 +21,11 @@ func GetAllBooks(db *gorm.DB) []Book {
 
 func GetBookById(Id int64, db *gorm.DB) (*Book, *gorm.DB) {
 	var getBook Book
-	dbred := db.Where("ID=?", Id).Find(&getBook)
+	// NOTE: gorm query
+	// dbred := db.Where("ID=?", Id).Find(&getBook)
+
+	// deliberate security issue
+	dbred := db.Exec("SELECT * FROM books WHERE ID=" + strconv.FormatInt(Id, 10))
 	return &getBook, dbred
 }
 

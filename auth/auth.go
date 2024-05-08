@@ -43,6 +43,7 @@ func RegisterNewUser(username string, password string, secret string) error {
 		return err
 	}
 
+	// Correct implementation
 	user := &models.User{
 		UUID:            uuid.New().String(),
 		Username:        username,
@@ -50,8 +51,16 @@ func RegisterNewUser(username string, password string, secret string) error {
 		TwoFactorSecret: string(secret),
 		Role:            "standard",
 	}
-
 	db.Create(&user)
+
+	// NOTE: Vulnerable code: raw SQL with direct user input (example', 'password', 'secret', 'admin'); -- )
+	// uuid := uuid.New().String()
+	// query := fmt.Sprintf(`
+	// INSERT INTO users (uuid, username, password, two_factor_secret, role)
+	// VALUES ('%s', '%s', '%s', '%s', 'standard')`,
+	// 	uuid, username, string(passwordHash), secret)
+
+	// db.Exec(query)
 
 	return nil
 }
@@ -86,7 +95,7 @@ func GenerateTOTPWithSecret(randomSecret string, username string) string {
 
 	qrcode.WriteFile(uri, qrcode.Medium, 256, "qr.png")
 
-	// to print qr code to terminal
+	// NOTE: to print qr code to terminal
 	// qrterminal.GenerateWithConfig(uri, qrterminal.Config{
 	// 	Level:     qrterminal.L,
 	// 	Writer:    os.Stdout,
@@ -110,5 +119,6 @@ func GetSecretFromDB(username string) (string, error) {
 	if err := db.Where("username = ?", username).First(&user).Error; err != nil {
 		return "", fmt.Errorf("username couldn't be found: %v", err)
 	}
+
 	return user.TwoFactorSecret, nil
 }

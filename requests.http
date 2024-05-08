@@ -1,27 +1,37 @@
 ### 
 POST https://localhost:8080/register
 Content-Type: application/x-www-form-urlencoded
-
-username=Light&password=Yagami
+username=fabian@fabian.ch&password=fabian
 ### 
 POST https://localhost:8080/login
 Content-Type: application/x-www-form-urlencoded
-
-username=Light&password=Yagami
+username=fabian@fabian.ch&password=fabian
 ###
 POST https://localhost:8080/twofactor
 Content-Type: application/x-www-form-urlencoded
-
 2FACode=0123021
 ###
 POST https://localhost:8080/logout
-###
-GET https://localhost:8080/profile
+Content-Type: application/x-www-form-urlencoded
 ###
 GET https://localhost:8080/book/
+Content-Type: application/json
 ###
 POST https://localhost:8080/book/
+Content-Type: application/json
+{
+	"name": "Die Taube",
+	"author": "Patrick Suesskind",
+	"publication": "Diogenes"
+}
 ###
 PUT https://localhost:8080/book/
+Content-Type: application/json
+{
+	"UpdatedAt": "2024-04-26T15:34:46+02:00",
+	"name": "Die Taube",
+	"author": "Patrick Suesskind",
+	"publication": "Diogenes"
+}
 ###
 Delete https://localhost:8080/book/3
