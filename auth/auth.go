@@ -3,7 +3,6 @@ package auth
 import (
 	"fmt"
 	"net/http"
-	"os"
 	"time"
 
 	"git.gibb.ch/faf141769/infw-22a-m152-teamsigma/config"
@@ -12,7 +11,6 @@ import (
 	"github.com/google/uuid"
 	"github.com/gorilla/sessions"
 	"github.com/jinzhu/gorm"
-	"github.com/mdp/qrterminal"
 	"github.com/skip2/go-qrcode"
 	"github.com/xlzd/gotp"
 	"golang.org/x/crypto/bcrypt"
@@ -32,7 +30,7 @@ func Init(database *gorm.DB, config config.Config) {
 	Store = sessions.NewCookieStore([]byte(cfg.CookiePassword))
 	Store.Options = &sessions.Options{
 		Path:     "/",
-		MaxAge:   time.Now().Day() * 7,
+		MaxAge:   86400 * 7,
 		HttpOnly: true,
 		Secure:   true,
 		SameSite: http.SameSiteStrictMode,
@@ -83,17 +81,19 @@ func CreateJWT(username string) (string, error) {
 	return tokenString, nil
 }
 
-func GenerateTOTPWithSecret(randomSecret string) string {
-	uri := gotp.NewDefaultTOTP(randomSecret).ProvisioningUri("your e-mail", "Golang-API")
+func GenerateTOTPWithSecret(randomSecret string, username string) string {
+	uri := gotp.NewDefaultTOTP(randomSecret).ProvisioningUri(username, "Golang-API")
 
 	qrcode.WriteFile(uri, qrcode.Medium, 256, "qr.png")
 
-	qrterminal.GenerateWithConfig(uri, qrterminal.Config{
-		Level:     qrterminal.L,
-		Writer:    os.Stdout,
-		BlackChar: qrterminal.BLACK,
-		WhiteChar: qrterminal.WHITE,
-	})
+	// to print qr code to terminal
+	// qrterminal.GenerateWithConfig(uri, qrterminal.Config{
+	// 	Level:     qrterminal.L,
+	// 	Writer:    os.Stdout,
+	// 	BlackChar: qrterminal.BLACK,
+	// 	WhiteChar: qrterminal.WHITE,
+	// })
+
 	return uri
 }
 

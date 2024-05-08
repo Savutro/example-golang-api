@@ -28,6 +28,7 @@ func main() {
 
 	db := config.Connect(cfg)
 
+	// Update models in DB
 	if err := db.AutoMigrate(&models.User{}, &models.Book{}).Error; err != nil {
 		log.Fatal("Could not migrate database: ", err)
 	}
@@ -39,12 +40,12 @@ func main() {
 
 	// Authentication endpoints
 	r.HandleFunc("/register", controllers.RegisterUserHandler).Methods("POST")
-	r.HandleFunc("/login", controllers.LoginUserHandler).Methods("POST")     // returns invalid session cookie
-	r.HandleFunc("/twofactor", controllers.TwoFactorHandler).Methods("POST") // makes session cookie valid after 2FA
+	r.HandleFunc("/login", controllers.LoginUserHandler).Methods("POST")
+	r.HandleFunc("/twofactor", controllers.TwoFactorHandler).Methods("POST")
 	r.HandleFunc("/logout", middleware.AuthRequired(controllers.LogoutUserHandler)).Methods("POST")
 
 	// Example endpoint for role based authorization
-	r.HandleFunc("/admin", middleware.AuthAndRoleRequired(controllers.AdminHandler)).Methods("GET")
+	r.HandleFunc("/admin", middleware.AuthRequired(middleware.AuthAndRoleRequired(controllers.AdminHandler))).Methods("GET")
 
 	// User creates a book in the database
 	r.HandleFunc("/book", middleware.AuthRequired(controllers.CreateBookHandler)).Methods("POST")

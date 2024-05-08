@@ -1,2 +1,5 @@
 // Contains secrets
 config/config.yaml
+
+// qr code
+qr.png

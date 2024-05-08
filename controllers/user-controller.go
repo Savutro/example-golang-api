@@ -2,7 +2,6 @@ package controllers
 
 import (
 	"encoding/json"
-	"fmt"
 	"net/http"
 
 	"git.gibb.ch/faf141769/infw-22a-m152-teamsigma/auth"
@@ -21,8 +20,7 @@ func RegisterUserHandler(w http.ResponseWriter, r *http.Request) {
 	password := r.Form.Get("password")
 	randomSecret := gotp.RandomSecret(16)
 
-	uri := auth.GenerateTOTPWithSecret(randomSecret) //TODO Return URI instead of printing at the end
-	fmt.Print(uri)
+	uri := auth.GenerateTOTPWithSecret(randomSecret, username)
 
 	err = auth.RegisterNewUser(username, password, randomSecret)
 	if err != nil {
@@ -57,16 +55,21 @@ func LoginUserHandler(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	// Save token to session
+	// Save token and username to session
 	session, _ := auth.Store.Get(r, auth.SessionName)
 	session.Values["token"] = tokenString
+	session.Values["username"] = username
 	session.Save(r, w)
 
 	w.Write([]byte("Login successful"))
 }
 
 func TwoFactorHandler(w http.ResponseWriter, r *http.Request) {
-	session, _ := auth.Store.Get(r, auth.SessionName)
+	session, err := auth.Store.Get(r, auth.SessionName)
+	if err != nil {
+		http.Error(w, "Couldn't get session.", http.StatusInternalServerError)
+		return
+	}
 	tokenString, ok := session.Values["token"].(string)
 	if !ok {
 		http.Error(w, "Invalid session token.", http.StatusUnauthorized)
@@ -74,11 +77,12 @@ func TwoFactorHandler(w http.ResponseWriter, r *http.Request) {
 	}
 
 	token, err := jwt.Parse(tokenString, func(token *jwt.Token) (interface{}, error) {
-		return []byte("your JWT secret"), nil
+		return []byte("super-secret-code2"), nil // TODO hide secret
 	})
 
 	if err != nil {
 		http.Error(w, "Authentication failed.", http.StatusUnauthorized)
+		return
 	}
 
 	if claims, ok := token.Claims.(jwt.MapClaims); ok && token.Valid {
@@ -108,6 +112,11 @@ func TwoFactorHandler(w http.ResponseWriter, r *http.Request) {
 			http.Error(w, "Couldn't verify code", http.StatusBadRequest)
 			return
 		}
+
+		// Add authenticated flag to session and remove jwt
+		session.Values["authenticated"] = true
+		session.Values["token"] = nil
+		session.Save(r, w)
 	}
 
 }
