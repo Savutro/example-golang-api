@@ -11,6 +11,7 @@ import (
 	"git.gibb.ch/faf141769/infw-22a-m152-teamsigma/middleware"
 	"git.gibb.ch/faf141769/infw-22a-m152-teamsigma/models"
 	"github.com/gorilla/mux"
+	"github.com/gorilla/handlers"
 )
 
 const (
@@ -53,7 +54,7 @@ func main() {
 	// User gets all books from database
 	r.HandleFunc("/book", middleware.AuthRequired(controllers.GetBookHandler)).Methods("GET")
 
-	// User gets info about a specifc book from database
+	// User gets info about a specific book from database
 	r.HandleFunc("/book/{bookId}", middleware.AuthRequired(controllers.GetBookByIdHandler)).Methods("GET")
 
 	// User overrides existing book with provided info
@@ -75,9 +76,16 @@ func main() {
 		Certificates: []tls.Certificate{cert},
 	}
 
+	// Apply CORS middleware to the router
+	corsHandler := handlers.CORS(
+		handlers.AllowedOrigins([]string{"http://localhost:4200"}), // Allow requests from your frontend URL
+		handlers.AllowedMethods([]string{"GET", "POST", "PUT", "DELETE", "OPTIONS"}),
+		handlers.AllowedHeaders([]string{"Content-Type", "Authorization"}),
+	)
+
 	server := &http.Server{
 		Addr:      port,
-		Handler:   r,
+		Handler:   corsHandler(r),
 		TLSConfig: tlsCfg,
 	}
 
