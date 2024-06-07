@@ -9,10 +9,17 @@ import (
 	"github.com/xlzd/gotp"
 )
 
+// Helper function to send JSON response
+func sendJSONResponse(w http.ResponseWriter, status int, payload interface{}) {
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(status)
+	json.NewEncoder(w).Encode(payload)
+}
+
 func RegisterUserHandler(w http.ResponseWriter, r *http.Request) {
 	err := r.ParseForm()
 	if err != nil {
-		http.Error(w, "Could not parse form", http.StatusBadRequest)
+		sendJSONResponse(w, http.StatusBadRequest, map[string]string{"error": "Could not parse form"})
 		return
 	}
 
@@ -24,18 +31,17 @@ func RegisterUserHandler(w http.ResponseWriter, r *http.Request) {
 
 	err = auth.RegisterNewUser(username, password, randomSecret)
 	if err != nil {
-		http.Error(w, "Could not register new user", http.StatusInternalServerError)
+		sendJSONResponse(w, http.StatusInternalServerError, map[string]string{"error": "Could not register new user"})
 		return
 	}
 
-	w.Header().Set("Content-Type", "application/json")
-	json.NewEncoder(w).Encode(map[string]string{"uri": uri})
+	sendJSONResponse(w, http.StatusOK, map[string]string{"uri": uri})
 }
 
 func LoginUserHandler(w http.ResponseWriter, r *http.Request) {
 	err := r.ParseForm()
 	if err != nil {
-		http.Error(w, "Could not parse form", http.StatusBadRequest)
+		sendJSONResponse(w, http.StatusBadRequest, map[string]string{"error": "Could not parse form"})
 		return
 	}
 
@@ -44,14 +50,14 @@ func LoginUserHandler(w http.ResponseWriter, r *http.Request) {
 
 	err = auth.LoginUser(username, password)
 	if err != nil {
-		http.Error(w, "Credentials are invalid", http.StatusBadRequest)
+		sendJSONResponse(w, http.StatusBadRequest, map[string]string{"error": "Credentials are invalid"})
 		return
 	}
 
 	// Create intermediate jwt token for 2FA
 	tokenString, err := auth.CreateJWT(username)
 	if err != nil {
-		http.Error(w, "Could not create JWT", http.StatusInternalServerError)
+		sendJSONResponse(w, http.StatusInternalServerError, map[string]string{"error": "Could not create JWT"})
 		return
 	}
 
@@ -61,18 +67,18 @@ func LoginUserHandler(w http.ResponseWriter, r *http.Request) {
 	session.Values["username"] = username
 	session.Save(r, w)
 
-	w.Write([]byte("Login successful"))
+	sendJSONResponse(w, http.StatusOK, map[string]string{"message": "Login successful"})
 }
 
 func TwoFactorHandler(w http.ResponseWriter, r *http.Request) {
 	session, err := auth.Store.Get(r, auth.SessionName)
 	if err != nil {
-		http.Error(w, "Couldn't get session.", http.StatusInternalServerError)
+		sendJSONResponse(w, http.StatusInternalServerError, map[string]string{"error": "Couldn't get session"})
 		return
 	}
 	tokenString, ok := session.Values["token"].(string)
 	if !ok {
-		http.Error(w, "Invalid session token.", http.StatusUnauthorized)
+		sendJSONResponse(w, http.StatusUnauthorized, map[string]string{"error": "Invalid session token"})
 		return
 	}
 
@@ -81,20 +87,20 @@ func TwoFactorHandler(w http.ResponseWriter, r *http.Request) {
 	})
 
 	if err != nil {
-		http.Error(w, "Authentication failed.", http.StatusUnauthorized)
+		sendJSONResponse(w, http.StatusUnauthorized, map[string]string{"error": "Authentication failed"})
 		return
 	}
 
 	if claims, ok := token.Claims.(jwt.MapClaims); ok && token.Valid {
 		username, ok := claims["username"].(string)
 		if !ok {
-			http.Error(w, "Invalid session token.", http.StatusUnauthorized)
+			sendJSONResponse(w, http.StatusUnauthorized, map[string]string{"error": "Invalid session token"})
 			return
 		}
 
 		err := r.ParseForm()
 		if err != nil {
-			http.Error(w, "Could not parse form", http.StatusBadRequest)
+			sendJSONResponse(w, http.StatusBadRequest, map[string]string{"error": "Could not parse form"})
 			return
 		}
 
@@ -102,14 +108,14 @@ func TwoFactorHandler(w http.ResponseWriter, r *http.Request) {
 		code := r.Form.Get("2FACode")
 		secret, err := auth.GetSecretFromDB(username)
 		if err != nil {
-			http.Error(w, "Could not find user in token", http.StatusInternalServerError)
+			sendJSONResponse(w, http.StatusInternalServerError, map[string]string{"error": "Could not find user in token"})
 			return
 		}
 
 		// Verify code with secret
 		ok = auth.VerifyOTP(secret, code)
 		if !ok {
-			http.Error(w, "Couldn't verify code", http.StatusBadRequest)
+			sendJSONResponse(w, http.StatusBadRequest, map[string]string{"error": "Couldn't verify code"})
 			return
 		}
 
@@ -117,8 +123,9 @@ func TwoFactorHandler(w http.ResponseWriter, r *http.Request) {
 		session.Values["authenticated"] = true
 		session.Values["token"] = nil
 		session.Save(r, w)
-	}
 
+		sendJSONResponse(w, http.StatusOK, map[string]string{"message": "2FA successful"})
+	}
 }
 
 func LogoutUserHandler(w http.ResponseWriter, r *http.Request) {
@@ -128,7 +135,8 @@ func LogoutUserHandler(w http.ResponseWriter, r *http.Request) {
 
 	err := session.Save(r, w)
 	if err != nil {
-		http.Error(w, "Could not invalidate session.", http.StatusInternalServerError)
+		sendJSONResponse(w, http.StatusInternalServerError, map[string]string{"error": "Could not invalidate session"})
+		return
 	}
-	w.Write([]byte("Logout successful"))
+	sendJSONResponse(w, http.StatusOK, map[string]string{"message": "Logout successful"})
 }
