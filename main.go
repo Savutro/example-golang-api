@@ -11,7 +11,6 @@ import (
 	"git.gibb.ch/faf141769/infw-22a-m152-teamsigma/middleware"
 	"git.gibb.ch/faf141769/infw-22a-m152-teamsigma/models"
 	"github.com/gorilla/mux"
-	"github.com/gorilla/handlers"
 )
 
 const (
@@ -77,13 +76,7 @@ func main() {
 		Certificates: []tls.Certificate{cert},
 	}
 
-	// Apply CORS middleware to the router
-	corsHandler := handlers.CORS(
-		handlers.AllowedOrigins([]string{"http://localhost:4200"}), // Allow requests from your frontend URL
-		handlers.AllowedMethods([]string{"GET", "POST", "PUT", "DELETE", "OPTIONS"}),
-		handlers.AllowedHeaders([]string{"Content-Type", "Authorization"}),
-		handlers.AllowCredentials(),
-	)
+	corsHandler := middleware.CorsHandler()
 
 	server := &http.Server{
 		Addr:      port,
