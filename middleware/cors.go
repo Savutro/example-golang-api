@@ -12,6 +12,7 @@ func CorsHandler() func(http.Handler) http.Handler {
 		handlers.AllowedOrigins([]string{"http://localhost:4200"}), // Allow requests from your frontend URL
 		handlers.AllowedMethods([]string{"GET", "POST", "PUT", "DELETE", "OPTIONS"}),
 		handlers.AllowedHeaders([]string{"Content-Type", "Authorization"}),
+		handlers.AllowCredentials(),
 	)
 
 	return corsHandler
