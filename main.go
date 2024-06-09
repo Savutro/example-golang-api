@@ -44,6 +44,7 @@ func main() {
 	r.HandleFunc("/login", controllers.LoginUserHandler).Methods("POST")
 	r.HandleFunc("/twofactor", controllers.TwoFactorHandler).Methods("POST")
 	r.HandleFunc("/logout", middleware.AuthRequired(controllers.LogoutUserHandler)).Methods("POST")
+	r.HandleFunc("/isAuthenticated", controllers.AuthenticatedHandler).Methods("GET")
 
 	// Example endpoint for role based authorization
 	r.HandleFunc("/admin", middleware.AuthRequired(middleware.AuthAndRoleRequired(controllers.AdminHandler))).Methods("GET")
@@ -81,6 +82,7 @@ func main() {
 		handlers.AllowedOrigins([]string{"http://localhost:4200"}), // Allow requests from your frontend URL
 		handlers.AllowedMethods([]string{"GET", "POST", "PUT", "DELETE", "OPTIONS"}),
 		handlers.AllowedHeaders([]string{"Content-Type", "Authorization"}),
+		handlers.AllowCredentials(),
 	)
 
 	server := &http.Server{

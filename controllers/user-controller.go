@@ -65,6 +65,7 @@ func LoginUserHandler(w http.ResponseWriter, r *http.Request) {
 	session, _ := auth.Store.Get(r, auth.SessionName)
 	session.Values["token"] = tokenString
 	session.Values["username"] = username
+	session.Values["authenticated"] = false // Set to false initially
 	session.Save(r, w)
 
 	sendJSONResponse(w, http.StatusOK, map[string]string{"message": "Login successful"})
@@ -119,18 +120,19 @@ func TwoFactorHandler(w http.ResponseWriter, r *http.Request) {
 			return
 		}
 
-		// Add authenticated flag to session and remove jwt
+		// Update session with authenticated flag
 		session.Values["authenticated"] = true
-		session.Values["token"] = nil
 		session.Save(r, w)
 
 		sendJSONResponse(w, http.StatusOK, map[string]string{"message": "2FA successful"})
 	}
 }
 
+
 func LogoutUserHandler(w http.ResponseWriter, r *http.Request) {
 	session, _ := auth.Store.Get(r, auth.SessionName)
 	session.Values["username"] = nil
+	session.Values["authenticated"] = nil // Clear authenticated flag
 	session.Options.MaxAge = -1
 
 	err := session.Save(r, w)
@@ -140,3 +142,20 @@ func LogoutUserHandler(w http.ResponseWriter, r *http.Request) {
 	}
 	sendJSONResponse(w, http.StatusOK, map[string]string{"message": "Logout successful"})
 }
+
+func AuthenticatedHandler(w http.ResponseWriter, r *http.Request) {
+    session, err := auth.Store.Get(r, auth.SessionName)
+    if err != nil || session == nil {
+        sendJSONResponse(w, http.StatusUnauthorized, map[string]string{"error": "User is not authenticated"})
+        return
+    }
+
+    authenticated := session.Values["authenticated"]
+    if authenticated != true {
+        sendJSONResponse(w, http.StatusUnauthorized, map[string]string{"error": "User is not authenticated"})
+        return
+    }
+
+    sendJSONResponse(w, http.StatusOK, map[string]string{"message": "User is authenticated"})
+}
+
