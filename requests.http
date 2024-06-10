@@ -36,4 +36,6 @@ Content-Type: application/json
 	"publication": "Diogenes"
 }
 ###
-Delete https://localhost:8080/book/3
+DELETE  https://localhost:8080/book/3
+###
+GET https://localhost:8080/admin

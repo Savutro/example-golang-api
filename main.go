@@ -43,6 +43,7 @@ func main() {
 	r.HandleFunc("/login", controllers.LoginUserHandler).Methods("POST")
 	r.HandleFunc("/twofactor", controllers.TwoFactorHandler).Methods("POST")
 	r.HandleFunc("/logout", middleware.AuthRequired(controllers.LogoutUserHandler)).Methods("POST")
+	r.HandleFunc("/isAuthenticated", controllers.AuthenticatedHandler).Methods("GET")
 
 	// Example endpoint for role based authorization
 	r.HandleFunc("/admin", middleware.AuthRequired(middleware.AuthAndRoleRequired(controllers.AdminHandler))).Methods("GET")
@@ -53,7 +54,7 @@ func main() {
 	// User gets all books from database
 	r.HandleFunc("/book", middleware.AuthRequired(controllers.GetBookHandler)).Methods("GET")
 
-	// User gets info about a specifc book from database
+	// User gets info about a specific book from database
 	r.HandleFunc("/book/{bookId}", middleware.AuthRequired(controllers.GetBookByIdHandler)).Methods("GET")
 
 	// User overrides existing book with provided info
@@ -75,9 +76,11 @@ func main() {
 		Certificates: []tls.Certificate{cert},
 	}
 
+	corsHandler := middleware.CorsHandler()
+
 	server := &http.Server{
 		Addr:      port,
-		Handler:   r,
+		Handler:   corsHandler(r),
 		TLSConfig: tlsCfg,
 	}
 
