@@ -1,93 +1,92 @@
 # Golang-API
 
+## Installationen
+
+Um dieses Repo nutzen zu können muss zwingend Golang version 1.21 installiert sein.
+
+Ausserdem muss MySQL installiert sein. (Mit MySQL Workbench CE kann Einsicht auf die Datenbank genommen werden)
+
+## VSCode Konfiguration
+
+Für Codereferenzen kann die Erweiterung "Golang" installiert werden.
+
+## Nutzen der API
+
+Zunächst sollten die Befehle go get -v -u ausgeführt werden um die Dependencies zu aktualisieren. Danach mittels go mod tidy wird das go.mod File aktualisiert und die Checksum neu erstellt. 
+
+Mit dem Befehl go run main.go wird die Main-Funktion gestartet. In der Konsole sollte durch Logs ersichtlich sein, das der Service läuft.
+
+Die API sollte nun bereit sein, so dass unser Angular Frontend mit diesem kommunizieren kann.
+
+Damit das Frontend jedoch funktioniert muss das Zertifikat server.crt im Browser installiert werden damit die TLS Verbindung möglich ist.
+
+Die App kann auch durch ein Programm wie Insomnia oder Postman getestet werden. 
 
 
-## Getting started
+## Authentifikations-Flow
 
-To make it easy for you to get started with GitLab, here's a list of recommended next steps.
+Der Flow sollte auch im requests.http File ersichtlich sein
 
-Already a pro? Just edit this README.md and make it your own. Want to make it easy? [Use the template at the bottom](#editing-this-readme)!
+1. /register -> User wird in DB erstellt -> Gibt QR Code zurück (qr.png im Repo wenn mit Insomnia getestet wird)
+2. /login -> Logindaten von Registration übernehmen und einloggen -> Secure Session Cookie wird erstellt. 
+3. /2FA -> Code von der Google Authenticator App mitgeben -> Validiert Token in Session Cookie
+4. Nun können alle "Book" Endpunkte angesprochen werden. 
+5. Der Endpunkt Admin ist nur ansprechbar wenn man dem User manuell die Rolle des "admin" erteilt (in der DB)
+6. /logout -> Der Token im Session Cookie wird invalid gemacht -> Neues Login möglich
 
-## Add your files
+## Injection
 
-- [ ] [Create](https://docs.gitlab.com/ee/user/project/repository/web_editor.html#create-a-file) or [upload](https://docs.gitlab.com/ee/user/project/repository/web_editor.html#upload-a-file) files
-- [ ] [Add files using the command line](https://docs.gitlab.com/ee/gitlab-basics/add-file.html#add-a-file-using-the-command-line) or push an existing Git repository with the following command:
+In auth.go kann man den Code auf den Zeilen 44 - 55 einkommentieren und dafür den Code darunter zwischen den Zeilen 57 - 64 auskommentieren. Somit ersetzt man für dieses Beispiel die Version mit dem ORM GORM mit dessen bei der ein roher SQL Query gemacht wird.
 
-```
-cd existing_repo
-git remote add origin https://git.gibb.ch/faf141769/golang-api.git
-git branch -M main
-git push -uf origin main
-```
+Wenn man nun beim Registrieren folgenden Input macht:
 
-## Integrate with your tools
+(example', 'password', 'secret', 'admin'); -- 
 
-- [ ] [Set up project integrations](https://git.gibb.ch/faf141769/golang-api/-/settings/integrations)
+hat man nun einen admin user erstellt. Dies kann man in der DB nachweisen.
 
-## Collaborate with your team
+## Wahlthemen
 
-- [ ] [Invite team members and collaborators](https://docs.gitlab.com/ee/user/project/members/)
-- [ ] [Create a new merge request](https://docs.gitlab.com/ee/user/project/merge_requests/creating_merge_requests.html)
-- [ ] [Automatically close issues from merge requests](https://docs.gitlab.com/ee/user/project/issues/managing_issues.html#closing-issues-automatically)
-- [ ] [Enable merge request approvals](https://docs.gitlab.com/ee/user/project/merge_requests/approvals/)
-- [ ] [Set auto-merge](https://docs.gitlab.com/ee/user/project/merge_requests/merge_when_pipeline_succeeds.html)
+Wie mit Herrn Dumermuth besprochen haben wir mehrere Themen behandelt darunter:
 
-## Test and Deploy
+- Zweifaktoren Authentifizierung
+- Verschlüsselung der Datenübertragung mittels Self Signed Cert (TLS)
+- Sanitization via GORM
+- Passwortmanagement mit Hashing und Salting
+- Authorisierung der Endpunkte mittels Middlewares
+- Eigenes Softwaredesign basierend auf dem MVC Modell 
 
-Use the built-in continuous integration in GitLab.
+## Design
 
-- [ ] [Get started with GitLab CI/CD](https://docs.gitlab.com/ee/ci/quick_start/index.html)
-- [ ] [Analyze your code for known vulnerabilities with Static Application Security Testing (SAST)](https://docs.gitlab.com/ee/user/application_security/sast/)
-- [ ] [Deploy to Kubernetes, Amazon EC2, or Amazon ECS using Auto Deploy](https://docs.gitlab.com/ee/topics/autodevops/requirements.html)
-- [ ] [Use pull-based deployments for improved Kubernetes management](https://docs.gitlab.com/ee/user/clusters/agent/)
-- [ ] [Set up protected environments](https://docs.gitlab.com/ee/ci/environments/protected_environments.html)
+Die Struktur basiert auf einer modifizierten Variante eines MVC Modells
 
-***
+Im main.go File sind die Server initialisierung und die Routen definiert.
 
-# Editing this README
+Im package auth sind die Helperfunktionen für die Authentifizierung definiert.
 
-When you're ready to make this README your own, just edit this file and use the handy template below (or feel free to structure it however you want - this is just a starting point!). Thanks to [makeareadme.com](https://www.makeareadme.com/) for this template.
+Im package config befindet sich die definition der Datenbank und die config in Form eines YAML.
 
-## Suggestions for a good README
+Im package middlewares sind alle wiederverwendbaren Handler definiert, welche vor den Controllern zwischengeschalten sind.
 
-Every project is different, so consider which of these sections apply to yours. The sections used in the template are suggestions for most open source projects. Also keep in mind that while a README can be too long and detailed, too long is better than too short. If you think your README is too long, consider utilizing another form of documentation rather than cutting out information.
+Im package controllers sind die Handler definiert, welche die Routen bediehnen. 
 
-## Name
-Choose a self-explaining name for your project.
+Im package models sind die Objekte definiert und deren Methoden oder Helperfunktionen die sich auf diese Beziehen.
 
-## Description
-Let people know what your project can do specifically. Provide context and add a link to any reference visitors might be unfamiliar with. A list of Features or a Background subsection can also be added here. If there are alternatives to your project, this is a good place to list differentiating factors.
+Im package utils befinden sich alle restlichen Helperfunktionen.
 
-## Badges
-On some READMEs, you may see small images that convey metadata, such as whether or not all the tests are passing for the project. You can use Shields to add some to your README. Many services also have instructions for adding a badge.
+## Sicherheitsrelevante Aspekte/Vektoren
 
-## Visuals
-Depending on what you are making, it can be a good idea to include screenshots or even a video (you'll frequently see GIFs rather than actual videos). Tools like ttygif can help, but check out Asciinema for a more sophisticated method.
+Es ist klar, dass nicht alles abgedeckt wurde. Somit wurden keine Validierungen der Werde vorgenommen. Ausserdem fehlen genauere Logs welche klare Meldungen von sich geben.
 
-## Installation
-Within a particular ecosystem, there may be a common way of installing things, such as using Yarn, NuGet, or Homebrew. However, consider the possibility that whoever is reading your README is a novice and would like more guidance. Listing specific steps helps remove ambiguity and gets people to using your project as quickly as possible. If it only runs in a specific context like a particular programming language version or operating system or has dependencies that have to be installed manually, also add a Requirements subsection.
+## Entwicklungsprozess
 
-## Usage
-Use examples liberally, and show the expected output if you can. It's helpful to have inline the smallest example of usage that you can demonstrate, while providing links to more sophisticated examples if they are too long to reasonably include in the README.
+Die API wurde teilweise schon durch Vorarbeit sehr früh fertiggestellt. Hierbei machte man sich Gedanken bezüglich des Techstacks der verfügbar ist und somit wurde die Entscheidung getroffen, dass jemand den Fokus alleine auf die API setzt. 
 
-## Support
-Tell people where they can go to for help. It can be any combination of an issue tracker, a chat room, an email address, etc.
+Im Entwicklungsprozess wurden viel Eigenerfahrung aus dem Betrieb als auch sehr gelerntes eingesetzt. 
 
-## Roadmap
-If you have ideas for releases in the future, it is a good idea to list them in the README.
+Die Schnittstelle wurde im Anschluss im Zusammenspiel mit der Entwicklung der UI nochmals optimiert und Fehler konnten so gefunden und behoben werden.
 
-## Contributing
-State if you are open to contributions and what your requirements are for accepting them.
+In der letzten Testphase funktionierte das Produkt.
 
-For people who want to make changes to your project, it's helpful to have some documentation on how to get started. Perhaps there is a script that they should run or some environment variables that they need to set. Make these steps explicit. These instructions could also be useful to your future self.
+## Nutzen / Relevanz
 
-You can also document commands to lint the code or run tests. These steps help to ensure high code quality and reduce the likelihood that the changes inadvertently break something. Having instructions for running tests is especially helpful if it requires external setup, such as starting a Selenium server for testing in a browser.
-
-## Authors and acknowledgment
-Show your appreciation to those who have contributed to the project.
-
-## License
-For open source projects, say how it is licensed.
-
-## Project status
-If you have run out of energy or time for your project, put a note at the top of the README saying that development has slowed down or stopped completely. Someone may choose to fork your project or volunteer to step in as a maintainer or owner, allowing your project to keep going. You can also make an explicit request for maintainers.
+Die App dient zur Demonstration des Gelernten bezüglich Sicherheitsthematiken. Die Bücherapi hat nicht mehr als den Zweck zur Schaustellung der Authorisierung für diverse Endpunkte.

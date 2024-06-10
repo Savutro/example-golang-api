@@ -1,17 +1,25 @@
 package models
 
 import (
-	"git.gibb.ch/faf141769/infw-22a-m152-teamsigma/config"
+	"errors"
+	"net/mail"
+
 	"github.com/jinzhu/gorm"
 )
 
 type User struct {
 	gorm.Model
-	Username string
-	Password string
+	UUID            string `gorm:"type:varchar(36);unique"`
+	Username        string `gorm:"type:varchar(100);unique"`
+	Password        string `gorm:"not null;size:72"`
+	TwoFactorSecret string `gorm:"not null"`
+	Role            string `gorm:"type:varchar(20)"`
 }
 
-func init() {
-	db = config.GetDB()
-	db.AutoMigrate(&User{})
+func (u *User) BeforeSave() error {
+	if _, err := mail.ParseAddress(u.Username); err != nil {
+		return errors.New("invalid email")
+	}
+
+	return nil
 }
